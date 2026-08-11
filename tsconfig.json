@@ -42,7 +42,8 @@
       "@/*": [
         "./src/*"
       ]
-    }
+    },
+    "types": ["node", "jest"]
   },
   "include": [
     "next-env.d.ts",
@@ -60,6 +61,8 @@
     "node_modules",
     "./node_modules",
     "node_modules/**",
-    "./src/nextGenAPI"
+    "./src/nextGenAPI",
+    "**/__tests__/**",
+    "__tests__/**"
   ]
 }
