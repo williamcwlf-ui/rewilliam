@@ -49,6 +49,16 @@ export default function Page() {
     };
   }, [vantaEffect]);
 
+  // Build Roblox authorize URL parts
+  const clientId = process.env.NEXT_PUBLIC_ROBLOX_CLIENT_ID || '7169779610945884414';
+  const redirect = encodeURIComponent(`${baseUrl}/auth/roblox`);
+  const scope = [
+    'openid',
+    'profile',
+    'group:read'
+  ].map(encodeURIComponent).join('%20');
+  const stateQuery = state ? `&state=${encodeURIComponent(state as string)}` : '';
+
   return (
 
     <div ref={vantaRef} className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 h-screen" style={{ backgroundColor: '#161616' }}>
@@ -65,11 +75,7 @@ export default function Page() {
 
       <div className="max-w-sm w-full self-center mt-4 justify-center flex flex-col">
         <div className='flex flex-col gap-4'>
-          <Button href={`https://authorize.roblox.com/?client_id=8369795969584799403&response_type=Code&redirect_uri=${encodeURI(`${baseUrl}/auth/roblox`)}&scope=${[
-            'openid',
-            'profile',
-            'group:read'
-          ].map(scope => encodeURIComponent(scope)).join('+')}&step=landing${state ? `&state=${encodeURIComponent(state as string)}` : ''}`} icon={RobloxIcon} variant="discrete" className=''>Login with Roblox</Button>
+          <Button href={`https://authorize.roblox.com/?client_id=${clientId}&response_type=code&redirect_uri=${redirect}&scope=${scope}&step=landing${stateQuery}`} icon={RobloxIcon} variant="discrete" className=''>Login with Roblox</Button>
           <Button href={`https://discord.com/oauth2/authorize?client_id=${process.env?.NEXT_PUBLIC_DISCORD_CLIENT_ID}&response_type=code&scope=identify&redirect_uri=${encodeURI(`${baseUrl}/auth/discord`)}${state ? `&state=${encodeURIComponent(state as string)}` : ''}`} icon={DiscordIcon} variant="discrete" className=''>Login with Discord</Button>
         </div>
 
