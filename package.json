@@ -154,5 +154,8 @@
     "jest": "^30.4.2",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "@aws-sdk/types": "3.1061.0"
   }
 }
