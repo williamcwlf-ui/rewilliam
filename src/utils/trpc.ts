@@ -14,18 +14,18 @@ export function getBaseUrl(forSite: boolean = true) {
   if (forSite) {
     return {
       unknown: isClient ? window.location.origin : `http://localhost:${process.env.PORT ?? 3000}`,
-      production: 'https://panel.readmin.app',
+      production: 'https://rewilliam.vercel.app',
       // preview: `https://${process.env.VERCEL_ENV}`,
       development: 'https://panel.readmin.dev',
-      preview: 'https://panel.readmin.dev',
+      preview: 'https://rewilliam.vercel.app',
     }[env];
   }
   return {
     unknown: `http://localhost:3001`,
-    production: 'https://api.readmin.app',
+    production: 'https://rewilliam.vercel.app',
     // preview: `https://${process.env.VERCEL_ENV}`,
     development: 'https://api.readmin.dev',
-    preview: 'https://api.readmin.dev',
+    preview: 'https://rewilliam.vercel.app',
   }[env];
 }
 /**
@@ -148,14 +148,14 @@ export const trpc = createTRPCNext<AppRouter, SSRContext>({
   //  */
   // responseMeta(opts) {
   //   const ctx = opts.ctx as SSRContext;
-
+  //
   //   if (ctx.status) {
   //     // If HTTP status set, propagate that
   //     return {
   //       status: ctx.status,
   //     };
   //   }
-
+  //
   //   const error = opts.clientErrors[0];
   //   if (error) {
   //     // Propagate http first error from API calls
@@ -163,7 +163,7 @@ export const trpc = createTRPCNext<AppRouter, SSRContext>({
   //       status: error.data?.httpStatus ?? 500,
   //     };
   //   }
-
+  //
   //   // for app caching with SSR see https://trpc.io/docs/caching
   //   return {};
   // },
