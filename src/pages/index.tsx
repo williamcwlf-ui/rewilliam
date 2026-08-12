@@ -1,30 +1,16 @@
-{
-    "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
-  "extends": [
-    "next/core-web-vitals"
-  ],
-    "parserOptions": {
-      "project": "tsconfig.json",
-      "ecmaVersion": 2018,
-      "sourceType": "module"
-    },
-    "ignorePatterns": [
-      "src/components/custom_modules/**",
-      "node_modules/",
-      "./node_modules/**",
-      "node_modules/**"
-    ],
-  "rules": {
-    // I suggest you add those two rules:
-    "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/explicit-module-boundary-types": "off",
-    "@typescript-eslint/no-unused-vars": "warn",
-    "@typescript-eslint/no-explicit-any": "off",
-    "no-anonymous-default-export": "off",
-    "no-unused-vars": "off",
-    "@typescript-eslint/ban-ts-comment": "off",
-    "@next/next/no-img-element": "off",
-    "react/no-children-prop": "off"
-  }
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
+import LoadingPage from '~/components/layouts/LoadingPage';
+import { useUser } from '~/components/contexts/user';
+
+export default function Home() {
+  const router = useRouter();
+  const info = useUser();
+
+  useEffect(() => {
+    if ('loading' in info) return;
+    router.replace(info.loggedIn ? '/dashboard' : '/login');
+  }, [info, router]);
+
+  return <LoadingPage />;
 }
