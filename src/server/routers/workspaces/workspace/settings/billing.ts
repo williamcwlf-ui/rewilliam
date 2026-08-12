@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { workspaceProcedure } from '~/server/procedures';
 import { router } from '~/server/trpc';
 import { ReturnNormalFailure } from '~/utils/NormalResponseTypes';
-import stripeService, { findMeterOrCreate, findPriceByNameOrCreate, findSetupAssistPriceOrCreate, reAdminProductId, reAdminSubcriptionId, reAdminUsageSubcriptionId, updateStripeUser } from '~/services/stripe.service';
+import stripeService, { stripeConfigured, stripeIsTestMode, findMeterOrCreate, findPriceByNameOrCreate, findSetupAssistPriceOrCreate, reAdminProductId, reAdminSubcriptionId, reAdminUsageSubcriptionId, updateStripeUser } from '~/services/stripe.service';
 import { env } from '~/services/env';
 import { readminCollections } from '~/services/mongo.service';
 import { getGroupInfo } from '~/services/roblox.service';
@@ -27,6 +27,12 @@ export const workspaceSettingsBillingRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      if (!stripeConfigured) {
+        throw ReturnNormalFailure(
+          'PRECONDITION_FAILED',
+          'Billing is not configured on this deployment.',
+        );
+      }
       // ReAdmin's hosted service is shutting down - no new subscriptions or
       // trials can be started on readmin.app. Self-hosted deployments run their
       // own Stripe account and are unaffected.
@@ -47,7 +53,7 @@ export const workspaceSettingsBillingRouter = router({
       const url = path;
       const ipAddress = '';
 
-      const isTesting = env.STRIPE_PUBLIC.startsWith('pk_test');
+      const isTesting = stripeIsTestMode;
       const group = await getGroupInfo(workspace.groupId);
       const dbUser = await readminCollections.user.findOne({ robloxId: user.dbUser.robloxId });
       if (dbUser) {
@@ -197,6 +203,12 @@ export const workspaceSettingsBillingRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      if (!stripeConfigured) {
+        throw ReturnNormalFailure(
+          'PRECONDITION_FAILED',
+          'Billing is not configured on this deployment.',
+        );
+      }
       const { department, user } = ctx;
       if (!user) {
         return;
@@ -334,8 +346,14 @@ export const workspaceSettingsBillingRouter = router({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      if (!stripeConfigured) {
+        throw ReturnNormalFailure(
+          'PRECONDITION_FAILED',
+          'Billing is not configured on this deployment.',
+        );
+      }
       const { workspace, department, user } = ctx;
-      const isTesting = env.STRIPE_PUBLIC.startsWith('pk_test');
+      const isTesting = stripeIsTestMode;
       if (!user) {
         return;
       }
