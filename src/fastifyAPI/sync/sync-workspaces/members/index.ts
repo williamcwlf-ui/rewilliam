@@ -3,7 +3,7 @@ import { Workspace, GroupMember } from "~/services/NewMongoTypes";
 import { GroupAuditLog, GroupAuditLogAction } from "~/services/NewMongoTypes/GroupAuditLog.type";
 import { readminCollections } from "~/services/mongo.service";
 import * as Roblox from '~/services/roblox.service';
-import stripeService, { findMeterOrCreate, findPriceByNameOrCreate } from '~/services/stripe.service';
+import stripeService, { findMeterOrCreate, findPriceByNameOrCreate, stripeConfigured } from '~/services/stripe.service';
 import groupUserEventHandler from "../../../apiHandlers/internal/events-handler/messageTypes/groupUserEvent";
 import { getAllGDPRIgnoredUsers } from "~/utils/isUserGDPRIgnored";
 import { openCloudGetGroupMembersInRole } from "~/services/opencloud.roblox.service";
@@ -550,8 +550,10 @@ export default async function SyncMembers(workspace: Workspace, firstTime = fals
   );
   console.timeLog(`SyncMembers-${workspace.groupId}`, 'Updating premium data');
 
-  // Handle premium subscription logic
-  if (workspace.premium?.is && workspace.premium.subscriptionId) {
+  // Handle premium subscription logic. Without billing configured there is no
+  // usage to report, and this loop runs every minute — so skip it rather than
+  // logging a Stripe failure per workspace per minute.
+  if (stripeConfigured && workspace.premium?.is && workspace.premium.subscriptionId) {
     try {
       const subscription = await stripeService.subscriptions.retrieve(workspace.premium.subscriptionId);
       if (!workspace.premium.meterId) {
