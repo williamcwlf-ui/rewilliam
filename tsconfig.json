@@ -27,6 +27,10 @@
     "resolveJsonModule": true,
     "noUncheckedIndexedAccess": true,
     "isolatedModules": true,
+    "types": [
+      "node",
+      "jest"
+    ],
     "jsx": "react-jsx",
     "incremental": true,
     "outDir": "build",
@@ -42,18 +46,17 @@
       "@/*": [
         "./src/*"
       ]
-    },
-    "types": ["node", "jest"]
+    }
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "./*.js",
-    "./src/**/*.js",
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "*.ts",
+    "*.js",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.js",
+    "__tests__/**/*.ts",
+    "__tests__/**/*.tsx",
     ".next/types/**/*.ts",
     "ignore.for.jest.js"
   ],
@@ -61,8 +64,6 @@
     "node_modules",
     "./node_modules",
     "node_modules/**",
-    "./src/nextGenAPI",
-    "**/__tests__/**",
-    "__tests__/**"
+    "./src/nextGenAPI"
   ]
 }
