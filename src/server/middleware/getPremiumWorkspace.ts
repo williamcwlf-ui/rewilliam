@@ -55,12 +55,9 @@ export default middleware(async ({ ctx, getRawInput, next }) => {
     });
   }
 
-  if (!userWorkspace?.workspace?.premium?.is) {
-    throw new TRPCError({
-      code: 'UNAUTHORIZED',
-      message: 'Workspace must be premium to use this endpoint',
-    });
-  }
+  // Stripe/paywall disabled: premium is no longer required to use these
+  // endpoints (getUserWorkspace already reports every workspace as Premium,
+  // but this check is left disabled explicitly rather than relying on that).
 
   const groupMember = await readminCollections.group_member.findOne({ groupId: userWorkspace.workspace.groupId, userId: parseInt(user.dbUser.robloxId || '0') })
   const groupRole = await readminCollections.group_role.findOne({ groupId: userWorkspace.workspace.groupId, rank: groupMember?.rankId })
