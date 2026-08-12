@@ -7,6 +7,7 @@ import {
 import { readminCollections } from '~/services/mongo.service';
 import { getGroupInfo, getGroupThumbnail } from '~/services/roblox.service';
 import stripeService from '~/services/stripe.service';
+import { stripeIsTestMode } from '~/services/stripe.service';
 import { router } from '~/server/trpc';
 import StringToObjectID from '~/utils/StringToObjectID';
 import { getDiscordUser, OAuth2Handshake, getUserFromDiscordOAuthHandshake, sendReAdminInternalWebhookMessage } from '~/services/discord.service';
@@ -63,7 +64,7 @@ export const userRouter = router({
   })).mutation(async ({ ctx, input }) => {
     const user = ctx.user;
     const path = input.path;
-    const isTesting = env.STRIPE_PUBLIC.startsWith('pk_test');
+    const isTesting = stripeIsTestMode;
     if (!user.dbUser.stripeId) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
