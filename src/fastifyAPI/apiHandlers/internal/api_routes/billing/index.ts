@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { env } from "~/services/env";
-import stripeService from "~/services/stripe.service";
+import stripeService, { stripeConfigured } from "~/services/stripe.service";
 import { sendReAdminInternalWebhookMessage } from "~/services/discord.service";
 import { readminCollections } from "~/services/mongo.service";
 import { FastifyReply, FastifyRequest } from 'fastify';
@@ -11,6 +11,11 @@ export const billingHandler = async (req: FastifyRequest<{
     Headers: { ['stripe-signature']?: string;['Stripe-Signature']?: string; };
     Body: any;
 }>, res: FastifyReply) => {
+    // Nothing can deliver a valid Stripe webhook to a deployment with no Stripe
+    // account, so anything arriving here is misdirected or forged.
+    if (!stripeConfigured || !env.STRIPE_SIGNING_SECRET) {
+        return res.status(404).send({ error: 'Billing is not configured on this deployment' });
+    }
     try {
         let stripeEvent: Stripe.Event = {} as Stripe.Event;
         const { headers } = req;
