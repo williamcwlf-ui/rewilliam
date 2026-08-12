@@ -2,21 +2,68 @@ import Stripe from 'stripe';
 import { env } from '~/services/env';
 import { User, Workspace } from './NewMongoTypes';
 import { readminCollections } from '~/services/mongo.service';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-const stripeService = new Stripe(env.STRIPE_SECRET, {
-  //@ts-expect-error ok
-  apiVersion: null
-});
 
-export const reAdminProductId = env.STRIPE_PUBLIC.startsWith('pk_test') ? 'prod_P1vkRDvQJs3thH' : 'prod_P22XA4AaEGIGs7'
-export const reAdminSubcriptionId = env.STRIPE_PUBLIC.startsWith('pk_test') ? 'price_1ODrsgFQlpJ67TzVZXg7ZMUP' : 'price_1ODyS0FQlpJ67TzVpN1Haz1M'
-export const reAdminUsageSubcriptionId = env.STRIPE_PUBLIC.startsWith('pk_test') ? 'price_1OLJmhFQlpJ67TzVs1AzzhH8' : 'price_1OLJlfFQlpJ67TzV460ezTYC'
+// If Stripe is not configured, export a harmless stub so the rest of the
+// codebase can import stripe.service without runtime errors. Billing-related
+// flows should check `env.STRIPE_PUBLIC` / `env.STRIPE_SECRET` and behave
+// accordingly (disabled when unset).
+let stripeService: any = null;
+if (env.STRIPE_SECRET && env.STRIPE_SECRET.trim() !== '') {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  stripeService = new Stripe(env.STRIPE_SECRET, {
+    //@ts-expect-error ok
+    apiVersion: null,
+  });
+} else {
+  // Minimal stub matching the nested shape used by the app. Methods return
+  // safe no-op values (empty arrays / null urls / empty objects).
+  stripeService = {
+    customers: {
+      retrieve: async (_: string) => ({}),
+      update: async (_: string, __: any) => ({}),
+      create: async (_: any) => ({ id: '' }),
+    },
+    billing: {
+      meters: {
+        list: async (_: any) => ({ data: [], has_more: false }),
+        create: async (_: any) => null,
+      },
+    },
+    prices: {
+      list: async (_: any) => ({ data: [], has_more: false }),
+      create: async (_: any) => ({}),
+      update: async (_: string, __: any) => ({}),
+    },
+    checkout: {
+      sessions: {
+        create: async (_: any) => ({ url: null }),
+      },
+    },
+    billingPortal: {
+      sessions: {
+        create: async (_: any) => ({ url: null }),
+      },
+    },
+    subscriptions: {
+      list: async (_: any) => ({ data: [] }),
+      update: async (_: string, __: any) => ({}),
+    },
+  };
+}
 
-// https://discord.com/api/oauth2/authorize?client_id=1077397229792399532&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth&response_type=code&scope=identify%20email
+export const reAdminProductId = env.STRIPE_PUBLIC && env.STRIPE_PUBLIC.startsWith('pk_test') ? 'prod_P1vkRDvQJs3thH' : 'prod_P22XA4AaEGIGs7'
+export const reAdminSubcriptionId = env.STRIPE_PUBLIC && env.STRIPE_PUBLIC.startsWith('pk_test') ? 'price_1ODrsgFQlpJ67TzVZXg7ZMUP' : 'price_1ODyS0FQlpJ67TzVpN1Haz1M'
+export const reAdminUsageSubcriptionId = env.STRIPE_PUBLIC && env.STRIPE_PUBLIC.startsWith('pk_test') ? 'price_1OLJmhFQlpJ67TzVs1AzzhH8' : 'price_1OLJlfFQlpJ67TzV460ezTYC'
 
+// If Stripe is disabled, updateStripeUser is a no-op so login/session
+// creation doesn't fail.
 export async function updateStripeUser(
   user: User
-): Promise<Stripe.Customer | Stripe.DeletedCustomer> {
+): Promise<any> {
+  if (!env.STRIPE_PUBLIC || !env.STRIPE_SECRET) {
+    return {} as any;
+  }
+
   const isTesting = env.STRIPE_PUBLIC.startsWith('pk_test');
   const userObject = {
     name: user.name,
@@ -54,14 +101,18 @@ export async function updateStripeUser(
   return created;
 }
 
-export async function findMeterOrCreate(workspace: Workspace, second = false): Promise<Stripe.Billing.Meter | null> {
+export async function findMeterOrCreate(workspace: Workspace, second = false): Promise<any | null> {
+  if (!env.STRIPE_PUBLIC || !env.STRIPE_SECRET) {
+    // Stripe disabled — return null so callers know meters are not available.
+    return null;
+  }
   let meter = null;
   const find = async (last?: string) => {
     const list = await stripeService.billing.meters.list({
       limit: 100,
       ...(last ? { starting_after: last } : {}),
     })
-    const found = list.data.find((i) => i.event_name === `${workspace.groupId}-member-count`);
+    const found = list.data.find((i: any) => i.event_name === `${workspace.groupId}-member-count`);
     if (found) {
       meter = found;
       return;
@@ -90,14 +141,15 @@ export async function findMeterOrCreate(workspace: Workspace, second = false): P
   return meter;
 }
 
-export async function findPriceByNameOrCreate(workspace: Workspace, meterId: string): Promise<Stripe.Price> {
+export async function findPriceByNameOrCreate(workspace: Workspace, meterId: string): Promise<any | null> {
+  if (!env.STRIPE_PUBLIC || !env.STRIPE_SECRET) return null;
   let price = null;
   const find = async (last?: string) => {
     const list = await stripeService.prices.list({
       limit: 100,
       ...(last ? { starting_after: last } : {}),
     })
-    const found = list.data.find((i) => i.metadata?.groupId?.toString() === workspace.groupId.toString());
+    const found = list.data.find((i: any) => i.metadata?.groupId?.toString() === workspace.groupId.toString());
     if (found) {
       if (found.active === false) {
         await stripeService.prices.update(found.id, {
@@ -137,15 +189,16 @@ export async function findPriceByNameOrCreate(workspace: Workspace, meterId: str
 // only ever create a single price and look it up by metadata afterwards.
 export const SETUP_ASSIST_AMOUNT_CENTS = 1500;
 
-export async function findSetupAssistPriceOrCreate(): Promise<Stripe.Price> {
-  let price: Stripe.Price | null = null;
+export async function findSetupAssistPriceOrCreate(): Promise<any | null> {
+  if (!env.STRIPE_PUBLIC || !env.STRIPE_SECRET) return null;
+  let price: any | null = null;
   const find = async (last?: string) => {
     const list = await stripeService.prices.list({
       limit: 100,
       ...(last ? { starting_after: last } : {}),
     });
     const found = list.data.find(
-      (i) => i.metadata?.type === 'setup-assist' && i.active !== false,
+      (i: any) => i.metadata?.type === 'setup-assist' && i.active !== false,
     );
     if (found) {
       price = found;
