@@ -1,5 +1,4 @@
-{
-  "name": "readmin",
+ "name": "readmin",
   "version": "0.0.1",
   "private": true,
   "license": "SEE LICENSE IN LICENSE.md",
@@ -58,7 +57,10 @@
     "@mui/material-nextjs": "^7.3.10",
     "@mui/x-charts": "^8.28.2",
     "@mui/x-data-grid": "^8.28.7",
+    "@mui/x-data-grid-pro": "^8.28.7",
     "@mui/x-date-pickers": "^8.28.7",
+    "@mui/x-date-pickers-pro": "^8.28.7",
+    "@mui/x-license": "^8.28.7",
     "@next/eslint-plugin-next": "^16.2.7",
     "@next/third-parties": "^16.2.7",
     "@opensearch-project/opensearch": "^3.6.0",
@@ -153,4 +155,3 @@
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3"
   }
-}
