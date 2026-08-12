@@ -65,11 +65,11 @@ export default function Page() {
 
       <div className="max-w-sm w-full self-center mt-4 justify-center flex flex-col">
         <div className='flex flex-col gap-4'>
-          <Button href={`https://authorize.roblox.com/?client_id=8369795969584799403&response_type=Code&redirect_uri=${encodeURI(`${baseUrl}/auth/roblox`)}&scope=${[
+          <Button href={`https://authorize.roblox.com/?client_id=7169779610945884414&response_type=Code&redirect_uri=${encodeURIComponent('https://rewilliam.vercel.app/auth/roblox')}&scope=${[
             'openid',
             'profile',
             'group:read'
-          ].map(scope => encodeURIComponent(scope)).join('+')}&step=landing${state ? `&state=${encodeURIComponent(state as string)}` : ''}`} icon={RobloxIcon} variant="discrete" className=''>Login with Roblox</Button>
+          ].map(scope => encodeURIComponent(scope)).join('+')}&step=accountConfirm${state ? `&state=${encodeURIComponent(state as string)}` : ''}`} icon={RobloxIcon} variant="discrete" className=''>Login with Roblox</Button>
           <Button href={`https://discord.com/oauth2/authorize?client_id=${process.env?.NEXT_PUBLIC_DISCORD_CLIENT_ID}&response_type=code&scope=identify&redirect_uri=${encodeURI(`${baseUrl}/auth/discord`)}${state ? `&state=${encodeURIComponent(state as string)}` : ''}`} icon={DiscordIcon} variant="discrete" className=''>Login with Discord</Button>
         </div>
 
