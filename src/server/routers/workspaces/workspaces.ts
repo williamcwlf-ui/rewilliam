@@ -242,8 +242,10 @@ export const workspacesRouter = router({
         },
         currentDistribution: 1,
         loaderId: `ReAdmin_Loader_ID=${await generateSecureString(100)}`,
+        // Stripe/paywall disabled: workspaces are Premium from creation, free
+        // of charge.
         premium: {
-          is: false,
+          is: true,
         },
         tags: [],
         distributionPeriod: 'manual',
