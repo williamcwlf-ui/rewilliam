@@ -18,7 +18,7 @@ import { router } from '~/server/trpc';
 import { readminCollections } from '~/services/mongo.service';
 import { ObjectId } from 'mongodb';
 import { generateSecureString } from '~/services/Crypto-service.service';
-import stripeService, { findMeterOrCreate, findPriceByNameOrCreate, findSetupAssistPriceOrCreate, reAdminSubcriptionId, updateStripeUser } from '~/services/stripe.service';
+import stripeService, { stripeIsTestMode, findMeterOrCreate, findPriceByNameOrCreate, findSetupAssistPriceOrCreate, reAdminSubcriptionId, updateStripeUser } from '~/services/stripe.service';
 import { env } from '~/services/env';
 import SyncMembers from '~/fastifyAPI/sync/sync-workspaces/members';
 import SyncRoles from '~/fastifyAPI/sync/sync-workspaces/roles';
@@ -274,7 +274,7 @@ export const workspacesRouter = router({
         const url = path;
         const ipAddress = '';
 
-        const isTesting = env.STRIPE_PUBLIC.startsWith('pk_test');
+        const isTesting = stripeIsTestMode;
         const group = await getGroupInfo(groupId);
         const dbUser = await readminCollections.user.findOne({ robloxId: user.dbUser.robloxId });
         if (dbUser) {
