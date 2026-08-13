@@ -14,18 +14,18 @@ export function getBaseUrl(forSite: boolean = true) {
   if (forSite) {
     return {
       unknown: isClient ? window.location.origin : `http://localhost:${process.env.PORT ?? 3000}`,
-      production: 'https://panel.readmin.app',
+      production: 'https://rewilliam.vercel.app',
       // preview: `https://${process.env.VERCEL_ENV}`,
-      development: 'https://panel.readmin.dev',
-      preview: 'https://panel.readmin.dev',
+      development: 'https://rewilliam.vercel.app',
+      preview: 'https://rewilliam.vercel.app',
     }[env];
   }
   return {
     unknown: `http://localhost:3001`,
     production: 'https://api.readmin.app',
     // preview: `https://${process.env.VERCEL_ENV}`,
-    development: 'https://api.readmin.dev',
-    preview: 'https://api.readmin.dev',
+    development: 'https://rewilliam.vercel.app',
+    preview: 'https://rewilliam.vercel.app',
   }[env];
 }
 /**
