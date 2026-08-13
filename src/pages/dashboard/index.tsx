@@ -26,7 +26,7 @@ function getGreeting() {
 }
 
 export default function DashboardPage() {
-  const { data: workspaces } = trpc.workspaces.getUsersWorkspaces.useQuery();
+  const { data: workspaces, isError, refetch } = trpc.workspaces.getUsersWorkspaces.useQuery();
   const info = useUser();
   const router = useRouter();
 
@@ -50,6 +50,27 @@ export default function DashboardPage() {
   }, [workspaces]);
 
   if (!workspaces) {
+    // Previously this returned <LoadingPage /> for both "still fetching" and
+    // "the request failed" - if getUsersWorkspaces errored, `workspaces` stays
+    // undefined forever and the page was stuck on the spinner with no way out.
+    if (isError) {
+      return (
+        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+          <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+            Couldn&apos;t load your workspaces
+          </h1>
+          <p className="max-w-sm text-sm text-gray-500 dark:text-gray-400">
+            Something went wrong reaching the server. Please try again.
+          </p>
+          <button
+            onClick={() => refetch()}
+            className="mt-1 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700"
+          >
+            Try again
+          </button>
+        </div>
+      );
+    }
     return <LoadingPage />;
   }
 
