@@ -394,7 +394,7 @@ export default function DashboardPage() {
     return sorted;
   }, [allMembers, memberQuery, sort]);
 
-  if (typeof window == undefined) {
+  if (typeof window === 'undefined') {
     return <></>;
   }
 
