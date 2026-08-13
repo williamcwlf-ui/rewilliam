@@ -113,46 +113,54 @@ export async function createSessionFromDBUser(dbUser: User): Promise<[string, Us
 }
 
 export async function checkJWT(auth: string): Promise<JWTUser | null> {
-  let user = null;
+  // `jsonwebtoken`'s verify(token, secret, callback) is callback-style and
+  // returns void (not a promise), so `await`-ing it here does NOT wait for
+  // the callback to run. The callback below was `async` and did real
+  // database lookups inside it (session lookup, user lookup, Roblox API
+  // calls) - those always take longer than the single tick `await verify()`
+  // actually waits on, so this function was returning `user` (still `null`)
+  // before the callback ever got a chance to set it. In practice that means
+  // every auth check silently resolved to "not logged in" - but only after
+  // however long those lookups took, which is why pages would render first
+  // and then bounce back to /login a moment later.
+  //
+  // Fix: call verify() synchronously (it throws on an invalid/expired/
+  // malformed token) and do the async work directly in this function, where
+  // `await` actually works as intended.
+  let verifiedUser: any;
+  try {
+    verifiedUser = verify(auth, env.JSON_WEB_TOKEN_SECRET);
+  } catch {
+    return null;
+  }
 
-  await verify(
-    auth,
-    env.JSON_WEB_TOKEN_SECRET,
-    async (err, verifiedUser: any): Promise<void> => {
-      if (err) {
-        return;
-      }
-      const session = await readminCollections.user_auth_session.findOne({ _id: verifiedUser.secureToken });
-      if (!session) {
-        return;
-      }
+  const session = await readminCollections.user_auth_session.findOne({ _id: verifiedUser.secureToken });
+  if (!session) {
+    return null;
+  }
 
-      const robloxId: string = verifiedUser.robloxId;
+  const robloxId: string = verifiedUser.robloxId;
 
-      if (verifiedUser.robloxId !== robloxId) {
-        return; // token mismatch, highly suspicous. probably should call FBI.
-      }
+  if (verifiedUser.robloxId !== robloxId) {
+    return null; // token mismatch, highly suspicous. probably should call FBI.
+  }
 
-      // Find the database user
-      const dbUser = await readminCollections.user.findOne({
-        robloxId: robloxId.toString(),
+  // Find the database user
+  const dbUser = await readminCollections.user.findOne({
+    robloxId: robloxId.toString(),
+  });
+  if (!dbUser) {
+    return null;
+  }
 
-      });
-      if (!dbUser) {
-        return;
-      }
+  if (dbUser.robloxId) {
+    const [info, thumbnail] = await Promise.all([
+      getUserInfo(dbUser.robloxId),
+      getUserThumbnail(dbUser.robloxId),
+    ]);
+    verifiedUser.roblox = info;
+    verifiedUser.thumbnail = thumbnail;
+  }
 
-      if (dbUser.robloxId) {
-        const [info, thumbnail] = await Promise.all([
-          getUserInfo(dbUser.robloxId),
-          getUserThumbnail(dbUser.robloxId),
-        ]);
-        verifiedUser.roblox = info;
-        verifiedUser.thumbnail = thumbnail;
-      }
-
-      user = { ...verifiedUser, dbUser };
-    },
-  );
-  return user;
+  return { ...verifiedUser, dbUser };
 }
