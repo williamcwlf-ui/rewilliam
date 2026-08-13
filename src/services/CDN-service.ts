@@ -11,8 +11,8 @@ export const s3Client = new S3({
   endpoint: env.CDN_ENDPOINT,
   region: env.CDN_REIGON,
   credentials: {
-    accessKeyId: env.CDN_ACCESS_KEY_ID,
-    secretAccessKey: env.CDN_SECRET_ACCESS_KEY,
+    accessKeyId: env.CDN_ACCESS_KEY_ID ?? '',
+    secretAccessKey: env.CDN_SECRET_ACCESS_KEY ?? '',
   },
 });
 
