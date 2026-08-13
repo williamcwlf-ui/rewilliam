@@ -25,13 +25,23 @@ export const fastify = Fastify({
     bodyLimit: 25 * 1024 * 1024, // 10 MB
     // http2: true,
 })
-fastify.register(cors, {
-    origin: {
+// Self-hosting: CORS_ORIGINS (comma separated) overrides the built-in
+// per-environment allowlist below, so a self-hosted panel domain is actually
+// allowed to call this API with credentials. Without this, the panel can log
+// in (that happens server-to-server) but every client-side request gets
+// blocked by CORS, which looks like "logs in, then gets bounced back to
+// login a couple seconds later" once the browser's user.info query fails.
+const corsOrigins = env.CORS_ORIGINS
+    ? env.CORS_ORIGINS.split(',').map((origin) => origin.trim()).filter(Boolean)
+    : {
         test: ['https://pewilliam.vercel.app'],
         preview: ['https://pewilliam.vercel.app'],
         development: ['https://pewilliam.vercel.app', 'https://pewilliam.vercel.app', 'https://pewilliam.vercel.app'],
         production: ['https://rewilliam.vercel.app', 'https://rewilliam.vercel.app'],
-    }[env.NEXT_PUBLIC_VERCEL_ENV || 'test'],
+    }[env.NEXT_PUBLIC_VERCEL_ENV || 'test'];
+
+fastify.register(cors, {
+    origin: corsOrigins,
     credentials: true,
 })
 
