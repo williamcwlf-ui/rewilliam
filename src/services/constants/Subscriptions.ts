@@ -39,7 +39,7 @@ export function isHostedReAdmin(host?: string | null): boolean {
  * everywhere. This module stays free of `~/services/env` (which parses the
  * server environment and `process.exit`s) because client components import it.
  */
-export const SUBSCRIPTIONS_CLOSED = true;
+export const SUBSCRIPTIONS_CLOSED = false;
 
 /** Shown to users (and returned from the API) wherever Premium used to be sold. */
 export const SUBSCRIPTIONS_CLOSED_MESSAGE =
