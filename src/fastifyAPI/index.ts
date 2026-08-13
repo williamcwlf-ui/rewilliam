@@ -27,10 +27,10 @@ export const fastify = Fastify({
 })
 fastify.register(cors, {
     origin: {
-        test: ['https://pewilliam.vercel.app/'],
-        preview: ['https://pewilliam.vercel.app/'],
-        development: ['https://pewilliam.vercel.app/', 'https://pewilliam.vercel.app/', 'https://pewilliam.vercel.app/'],
-        production: ['https://rewilliam.vercel.app/', 'https://rewilliam.vercel.app/],
+        test: ['https://pewilliam.vercel.app'],
+        preview: ['https://pewilliam.vercel.app'],
+        development: ['https://pewilliam.vercel.app', 'https://pewilliam.vercel.app', 'https://pewilliam.vercel.app'],
+        production: ['https://rewilliam.vercel.app', 'https://rewilliam.vercel.app'],
     }[env.NEXT_PUBLIC_VERCEL_ENV || 'test'],
     credentials: true,
 })
