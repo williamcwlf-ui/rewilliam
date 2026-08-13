@@ -63,12 +63,9 @@ const envSchema = z.object({
 // Set to 'true' on a self-hosted deployment (anything that is not
   // readmin.app). Enables the workspace data import tooling. Left unset, it is
   // inferred — see utils/deployment.ts.
-  SELF_HOSTED: z.string().optional(),
-  // Self-hosting: the public URLs of this deployment. When set they replace the
-  // readmin.app defaults, so the panel calls your API instead of ours. Both are
-  // read at build time — see utils/trpc.ts. install.sh writes them.
- NEXT_PUBLIC_PANEL_URL=rewilliam.vercel.app
-  NEXT_PUBLIC_API_URL=comcofuyhdisjxespbom.supabase.co
+SELF_HOSTED: true
+NEXT_PUBLIC_PANEL_URL: z.string().optional(),
+  NEXT_PUBLIC_API_URL: z.string().optional(),
   // Self-hosting: your own Roblox OAuth app, used to build the authorize URL in
   // the browser. Must match ROBLOX_CLIENT_ID. Defaults to ReAdmin's own app,
   // which will not accept your redirect URIs — see utils/robloxOAuth.ts.
