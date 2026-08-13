@@ -11,7 +11,17 @@ export function getBaseUrl(forSite: boolean = true) {
   const isClient = typeof window !== 'undefined';
   const env: 'unknown' | 'production' | 'preview' | 'development' = (process.env
     .NEXT_PUBLIC_VERCEL_ENV || 'unknown') as any;
+  // Self-hosting: NEXT_PUBLIC_PANEL_URL / NEXT_PUBLIC_API_URL, when set, win
+  // outright over every default below - see services/env.js. Without this,
+  // a self-hosted panel keeps calling ReAdmin's own hosted API, which won't
+  // recognize the self-hosted session and bounces the user back to login.
   if (forSite) {
+    if (process.env.NEXT_PUBLIC_PANEL_URL) return process.env.NEXT_PUBLIC_PANEL_URL;
+  } else if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  if (forSite) {
+    return {
     return {
       unknown: isClient ? window.location.origin : `http://localhost:${process.env.PORT ?? 3000}`,
       production: 'https://rewilliam.vercel.app',
