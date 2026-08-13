@@ -7,83 +7,30 @@ export const mongoClient = new MongoClient(env.MONGODB_URI, {
     appName: `${env.APP_NAME}-${env.NODE_ENV}`,
     retryReads: true,
     retryWrites: true,
-    serverSelectionTimeoutMS: 30000,
+    serverSelectionTimeoutMS: 10000,
+    // Keep the pool small and recycle idle connections quickly — serverless
+    // functions freeze between invocations, and long-idle sockets can go
+    // stale (silently dropped by the network or Atlas) while frozen. A short
+    // maxIdleTimeMS means the driver replaces a stale connection on next use
+    // instead of trying to reuse one that's already dead.
+    maxPoolSize: 10,
+    minPoolSize: 0,
+    maxIdleTimeMS: 30000,
     ssl: true,
     tls: true,
 });
 
-// Replace single connect() with robust retry logic
-let isConnecting = false;
-
-async function wait(ms: number) {
-    return new Promise((res) => setTimeout(res, ms));
-}
-
-async function connectWithRetry() {
-    if (isConnecting) return;
-    isConnecting = true;
-
-    const initialDelay = 1000; // ms
-    const maxDelay = 30000; // ms
-    const maxAttempts = 20;
-
-    let attempt = 0;
-    let delay = initialDelay;
-
-    while (true) {
-        attempt++;
-        try {
-            await mongoClient.connect();
-            // Connected successfully
-            // eslint-disable-next-line no-console
-            console.info(`MongoDB connected (attempt ${attempt})`);
-            break;
-        } catch (err) {
-            // eslint-disable-next-line no-console
-            console.error(`MongoDB connection attempt ${attempt} failed:`, err);
-            if (attempt >= maxAttempts) {
-                // If configured to stop after maxAttempts, keep trying in background but don't throw
-                // eslint-disable-next-line no-console
-                console.warn(`Reached configured max attempts (${maxAttempts}); will continue retrying in background.`);
-            }
-            // Exponential backoff with jitter
-            const jitter = Math.floor(Math.random() * delay);
-            const waitMs = Math.min(delay + jitter, maxDelay);
-            // eslint-disable-next-line no-console
-            console.info(`Retrying MongoDB connection in ${waitMs}ms`);
-            await wait(waitMs);
-            delay = Math.min(delay * 2, maxDelay);
-        }
-    }
-
-    isConnecting = false;
-}
-
-// Start initial connection attempt in background
-connectWithRetry().catch((err) => {
-    // Shouldn't throw, but log just in case
+// The driver connects lazily on first operation and retries transient
+// failures internally (that's what retryReads/retryWrites + the pool are
+// for) — a manual reconnect-on-close/error loop only fights that, and on
+// serverless it actively causes hangs: a request can land on the client
+// while it's mid-reconnect (topology already marked closed, new connection
+// not yet up), producing "Topology is closed" instead of ever recovering.
+// A single connect() call up front is enough; every operation after this
+// goes through the driver's own connection management.
+mongoClient.connect().catch((err) => {
     // eslint-disable-next-line no-console
-    console.error("Unexpected error in MongoDB connectWithRetry:", err);
-});
-
-// Reconnect on close/error events
-mongoClient.on && mongoClient.on("close", () => {
-    // eslint-disable-next-line no-console
-    console.warn("MongoDB connection closed, attempting reconnect...");
-    connectWithRetry().catch((err) => {
-        // eslint-disable-next-line no-console
-        console.error("Error while reconnecting to MongoDB after close:", err);
-    });
-});
-
-mongoClient.on && mongoClient.on("error", (err: any) => {
-    // eslint-disable-next-line no-console
-    console.error("MongoDB client error event:", err);
-    // Attempt reconnect if not connected
-    connectWithRetry().catch((e) => {
-        // eslint-disable-next-line no-console
-        console.error("Error while reconnecting to MongoDB after error event:", e);
-    });
+    console.error("Initial MongoDB connection failed:", err);
 });
 
 export const readminDatabase = mongoClient.db(env.MONGODB_DATABASE);
