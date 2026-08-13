@@ -1,14 +1,14 @@
 {
-    "name": "ReAdmin",
-    "short_name": "ReAdmin",
+    "name": "rewilliam",
+    "short_name": "rewilliam",
     "icons": [
         {
-            "src": "https://cdn.readmin.app/readmin-public/android-chrome-192x192.png",
+            "src": "https://i.ibb.co/N61mZfq9/rew.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "https://cdn.readmin.app/readmin-public/android-chrome-384x384.png",
+            "src": "https://i.ibb.co/N61mZfq9/rew.png",
             "sizes": "384x384",
             "type": "image/png"
         }
