@@ -63,7 +63,8 @@ const envSchema = z.object({
 // Set to 'true' on a self-hosted deployment (anything that is not
   // readmin.app). Enables the workspace data import tooling. Left unset, it is
   // inferred — see utils/deployment.ts.
-SELF_HOSTED: true
+SELF_HOSTED: z.string().optional()
+// Self-hosting: the public URLs...
 NEXT_PUBLIC_PANEL_URL: z.string().optional(),
   NEXT_PUBLIC_API_URL: z.string().optional(),
   // Self-hosting: your own Roblox OAuth app, used to build the authorize URL in
