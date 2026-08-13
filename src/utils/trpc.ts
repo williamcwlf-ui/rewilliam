@@ -22,7 +22,6 @@ export function getBaseUrl(forSite: boolean = true) {
   }
   if (forSite) {
     return {
-    return {
       unknown: isClient ? window.location.origin : `http://localhost:${process.env.PORT ?? 3000}`,
       production: 'https://rewilliam.vercel.app',
       // preview: `https://${process.env.VERCEL_ENV}`,
