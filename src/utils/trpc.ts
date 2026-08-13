@@ -88,7 +88,7 @@ export const trpc = createTRPCNext<AppRouter, SSRContext>({
                 return toSend;
               }
               return {
-                auth: typeof window !== undefined
+                auth: typeof window !== 'undefined'
                   ? window.localStorage.getItem('token') || ''
                   : '',
               };
@@ -103,7 +103,7 @@ export const trpc = createTRPCNext<AppRouter, SSRContext>({
                 withCredentials: true,
                 headers: {
                   'x-ssr': '1',
-                  auth: typeof window !== undefined
+                  auth: typeof window !== 'undefined'
                     ? window.localStorage.getItem('token') || ''
                     : '',
                 }
