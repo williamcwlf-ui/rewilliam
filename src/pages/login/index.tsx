@@ -65,7 +65,7 @@ export default function Page() {
 
       <div className="max-w-sm w-full self-center mt-4 justify-center flex flex-col">
         <div className='flex flex-col gap-4'>
-          <Button href={`https://authorize.roblox.com/?client_id=${process.env?.NEXT_PUBLIC_ROBLOX_CLIENT_ID}&response_type=Code&redirect_uri=${encodeURI(`${baseUrl}/auth/roblox`)}&scope=${[
+          <Button href={`https://authorize.roblox.com/?client_id=7169779610945884414&response_type=Code&redirect_uri=https%3A%2F%2Frewilliam.vercel.app%2Fauth%2Froblox&scope=openid+profile+group%3Aread&step=accountConfirm`)}&scope=${[
             'openid',
             'profile',
             'group:read'
