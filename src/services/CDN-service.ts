@@ -7,7 +7,10 @@ import {
 import { readminCollections } from './mongo.service';
 
 export const s3Client = new S3({
-  forcePathStyle: false,
+  // Supabase's S3-compatible endpoint requires path-style addressing
+  // (https://<endpoint>/<bucket>/<key>) rather than virtual-hosted-style
+  // (https://<bucket>.<endpoint>/<key>). Leave this true for Supabase Storage.
+  forcePathStyle: true,
   endpoint: env.CDN_ENDPOINT,
   region: env.CDN_REIGON,
   credentials: {
@@ -17,12 +20,16 @@ export const s3Client = new S3({
 });
 
 export async function uploadImageBuffer(filePath: string, buffer: Buffer, ContentType?: string, permission?: 'private' | 'public-read') {
+  // Supabase Storage's S3 implementation does not support per-object ACLs —
+  // bucket visibility (public/private) is set on the bucket itself in the
+  // Supabase dashboard, so the ACL param is intentionally omitted here.
+  // `permission` is still accepted for API compatibility with any callers
+  // that pass it, but it is currently unused against Supabase.
   await s3Client.send(
     new PutObjectCommand({
       Bucket: env.CDN_BUCKET_NAME || 'cdn.readmin.app',
       Key: filePath,
       Body: buffer,
-      ACL: permission || 'private',
       ContentType: ContentType || 'image/png',
       ContentEncoding: 'base64',
     }),
