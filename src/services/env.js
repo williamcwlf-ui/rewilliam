@@ -60,7 +60,10 @@ const envSchema = z.object({
   // Set to 'true' on a self-hosted deployment (anything that is not
   // readmin.app). Enables the workspace data import tooling. Left unset, it is
   // inferred — see utils/deployment.ts.
-  SELF_HOSTED: true
+// Set to 'true' on a self-hosted deployment (anything that is not
+  // readmin.app). Enables the workspace data import tooling. Left unset, it is
+  // inferred — see utils/deployment.ts.
+  SELF_HOSTED: z.string().optional(),
   // Self-hosting: the public URLs of this deployment. When set they replace the
   // readmin.app defaults, so the panel calls your API instead of ours. Both are
   // read at build time — see utils/trpc.ts. install.sh writes them.
