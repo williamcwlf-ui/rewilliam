@@ -1,19 +1,15 @@
-import { Context, createContext, PropsWithChildren, useContext } from 'react';
+import { createContext, PropsWithChildren, useContext } from 'react';
 import { trpc } from '~/utils/trpc';
 import { JWTUser } from '~/services/types/JWT.type';
 
 export type AuthenticatedUserContext = { loggedIn: true; user: JWTUser };
 
-const UserContext: Context
-  | {
-    loading: true;
-  }
-  | {
-    loggedIn: false;
-    user: null;
-  }
-  | AuthenticatedUserContext
-> = createContext({ loading: true }) as any;
+type UserContextValue =
+  | { loading: true }
+  | { loggedIn: false; user: null }
+  | AuthenticatedUserContext;
+
+const UserContext = createContext<UserContextValue>({ loading: true } as UserContextValue);
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 function UserProvider({ children }: PropsWithChildren<{}>) {
