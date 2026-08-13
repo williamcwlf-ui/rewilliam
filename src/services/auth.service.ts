@@ -154,12 +154,25 @@ export async function checkJWT(auth: string): Promise<JWTUser | null> {
   }
 
   if (dbUser.robloxId) {
-    const [info, thumbnail] = await Promise.all([
-      getUserInfo(dbUser.robloxId),
-      getUserThumbnail(dbUser.robloxId),
-    ]);
-    verifiedUser.roblox = info;
-    verifiedUser.thumbnail = thumbnail;
+    // getUserInfo/getUserThumbnail hit the live Roblox API and throw on any
+    // hiccup (rate limit, timeout, transient network error). That used to be
+    // unguarded, so a single flaky Roblox request would throw out of
+    // checkJWT entirely -> createContext throws -> the request looks
+    // unauthenticated even though the JWT/session were perfectly valid.
+    // That's what caused the login loop: token saves fine, but the very
+    // next request can fail this enrichment step and get treated as logged
+    // out. Enrichment is optional, so degrade gracefully instead of failing
+    // the whole auth check.
+    try {
+      const [info, thumbnail] = await Promise.all([
+        getUserInfo(dbUser.robloxId),
+        getUserThumbnail(dbUser.robloxId),
+      ]);
+      verifiedUser.roblox = info;
+      verifiedUser.thumbnail = thumbnail;
+    } catch (e) {
+      console.error('Failed to enrich user with Roblox info during checkJWT', dbUser.robloxId, e);
+    }
   }
 
   return { ...verifiedUser, dbUser };
