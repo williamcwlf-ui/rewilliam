@@ -55,8 +55,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           res,
           expires: new Date(Date.now() + (1000 * 60 * 60 * 24 * 6)),
         });
+        // FIX: Redirect server-side after setting session cookie
+        // This prevents the login loop that occurred when redirecting client-side
         return resolve({
-          props: { code: resp.token, name: resp.name, userId: resp.userId, state: state || '' },
+          redirect: {
+            destination: state ? state : '/dashboard',
+            permanent: false,
+          },
         });
       })
       .catch((err) => {
@@ -68,31 +73,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 };
 
 export default function Page(props: PropsWithChildren<{ code: string; userId: string; name: string; state?: string; } | { errMsg: string }>) {
-  const { code, userId, name, state, errMsg } = props as any;
-  const router = useRouter();
+  const { errMsg } = props as any;
   const [vantaEffect, setVantaEffect] = useState<any>(0);
   const vantaRef = useRef(null);
-  useEffect(() => {
-    if (code) {
-      if (!router.isReady) {
-        return;
-      }
-      if (!code) {
-        router.push('/');
-      }
-      localStorage.setItem('token', code);
-      window.location.href = state ? state : '/dashboard';
-
-      if (posthog) {
-        posthog.identify(userId, {
-          name: name,
-          userId,
-        });
-      }
-    }
-
-  }, [code || '', router, router.isReady]);
-
 
   useEffect(() => {
     if (!vantaEffect) {
@@ -133,12 +116,12 @@ export default function Page(props: PropsWithChildren<{ code: string; userId: st
           alt="ReAdmin"
         />
         <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white">
-          {errMsg ? errMsg == 'User is not authorized to access the development enviorment.' ? 'You are not authorized.' : 'Something went wrong...' : `Welcome back, ${name}`}
+          {errMsg ? errMsg == 'User is not authorized to access the development enviorment.' ? 'You are not authorized.' : 'Something went wrong...' : `Welcome back`}
         </h2>
       </div>
 
       <div className="max-w-sm w-full self-center mt-4 justify-center flex flex-col">
-        <p className="text-gray-100 text-center text-sm mt-4">{errMsg ? errMsg == 'User is not authorized to access the development enviorment.' ? `You are not authorized to access the ReAdmin development enviorment. If you believe this is a mistake contact us on Discord.` : errMsg : 'Please wait as we log you into ReAdmin.'}</p>
+        <p className="text-gray-100 text-center text-sm mt-4">{errMsg ? errMsg == 'User is not authorized to access the development enviorment.' ? `You are not authorized to access the ReAdmin development environment.` : `An error occurred during login. Please try again.` : `Redirecting...`}</p>
       </div>
       {errMsg == 'User is not authorized to access the development enviorment.' && (
         <div className="max-w-sm w-full self-center mt-4 justify-center flex flex-col">
