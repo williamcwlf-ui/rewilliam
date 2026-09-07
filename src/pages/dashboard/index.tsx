@@ -17,6 +17,8 @@ import { useUser } from '~/components/contexts/user';
 import { trpc } from '~/utils/trpc';
 import posthog from 'posthog-js'
 import { useRouter } from 'next/router'
+import { GetServerSideProps } from 'next';
+import { getCookie } from 'cookies-next';
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -24,6 +26,25 @@ function getGreeting() {
   if (hour < 18) return 'Good afternoon';
   return 'Good evening';
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  // Check if user has a valid session cookie
+  const session = getCookie('ReAdmin_Session', { req: context.req, res: context.res });
+  
+  // If no session, redirect to login with the current path as state
+  if (!session) {
+    return {
+      redirect: {
+        destination: `/login?state=${encodeURIComponent(context.req.url || '/dashboard')}`,
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {},
+  };
+};
 
 export default function DashboardPage() {
   const { data: workspaces, isError, refetch } = trpc.workspaces.getUsersWorkspaces.useQuery();
@@ -79,7 +100,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Hero header */}
-      <div className="fade-in animate-in slide-in-from-top relative overflow-hidden rounded-2xl border border-gray-200 bg-linear-to-br from-blue-600 via-blue-600 to-indigo-700 px-6 py-7 text-white shadow-sm dark:border-gray-700 sm:px-8 sm:py-8">
+      <div className="fade-in animate-in slide-in-from-top relative overflow-hidden rounded-2xl border border-gray-200 bg-linear-to-br from-blue-600 via-blue-600 to-indigo-700 px-6 py-7 text-white">
         <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10 blur-2xl" aria-hidden="true" />
         <div className="pointer-events-none absolute -bottom-16 right-24 h-40 w-40 rounded-full bg-indigo-400/20 blur-2xl" aria-hidden="true" />
         <div className="relative flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -169,7 +190,7 @@ export default function DashboardPage() {
                   }
                 }}
                 key={workspace.groupId}
-                className="fade-in animate-in slide-in-from-bottom group relative col-span-1 flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md dark:border-gray-700/80 dark:bg-gray-800/80 dark:hover:border-blue-700/60"
+                className="fade-in animate-in slide-in-from-bottom group relative col-span-1 flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-lg"
               >
                 <span className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-blue-500 to-indigo-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100" aria-hidden="true" />
                 <div className="flex items-center gap-4 p-5">
@@ -200,9 +221,9 @@ export default function DashboardPage() {
 
           <Link
             href="/workspaces/create"
-            className="fade-in animate-in slide-in-from-bottom group relative flex min-h-35 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 p-6 text-center transition-all duration-200 hover:border-blue-400 hover:bg-blue-50/40 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-700 dark:hover:border-blue-700/60 dark:hover:bg-blue-500/5"
+            className="fade-in animate-in slide-in-from-bottom group relative flex min-h-35 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 p-6 text-center transition-all duration-200 hover:border-blue-500 hover:bg-blue-50 dark:border-gray-600 dark:hover:bg-gray-800/50"
           >
-            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-gray-400 transition-colors group-hover:bg-blue-100 group-hover:text-blue-600 dark:bg-gray-700/60 dark:group-hover:bg-blue-500/15 dark:group-hover:text-blue-400">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-gray-400 transition-colors group-hover:bg-blue-100 group-hover:text-blue-600 dark:bg-gray-700/60 dark:group-hover:bg-blue-600/20 dark:group-hover:text-blue-400">
               <PlusIcon className="h-6 w-6" />
             </span>
             <span className="text-sm font-semibold text-gray-500 transition-colors group-hover:text-blue-600 dark:text-gray-400 dark:group-hover:text-blue-400">
