@@ -2,33 +2,38 @@
 import { useUser } from '~/components/contexts/user';
 import { NextPageWithLayout } from './_app';
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 const IndexPage: NextPageWithLayout = () => {
   const user = useUser();
   const router = useRouter();
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
+    // Only redirect once, ever. The auth context is hydrated asynchronously
+    // and can flicker between states during the Roblox callback, so we must
+    // ensure the redirect only fires a single time when the auth is definite.
+    if (hasRedirected.current) {
+      return;
+    }
+
     if (!router.isReady || typeof window === 'undefined') {
       return;
     }
 
-    // The user context is hydrated asynchronously. During the Roblox callback it
-    // can briefly look logged out before the session cookie / JWT is ready, so
-    // redirecting immediately causes the login loop.
+    // Wait for auth to be fully resolved (not loading)
     if ('loading' in user) {
       return;
     }
 
+    hasRedirected.current = true;
+
     if (user.loggedIn === true) {
       void router.replace('/dashboard');
-      return;
-    }
-
-    if (router.pathname !== '/login') {
+    } else {
       void router.replace('/login');
     }
-  }, [router, user]);
+  }, [router.isReady, user]);
 
   return (
     <main className="h-screen flex flex-col justify-center align-middle py-24 px-8 bg-gray-100">
