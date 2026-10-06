@@ -13,9 +13,9 @@ const IndexPage: NextPageWithLayout = () => {
       return;
     }
 
-    // The auth context is hydrated asynchronously. Do not redirect until we know
-    // whether the user is actually logged in, otherwise a brief "logged out"
-    // state during the Roblox callback can bounce us back into a login loop.
+    // The user context is hydrated asynchronously. During the Roblox callback it
+    // can briefly look logged out before the session cookie / JWT is ready, so
+    // redirecting immediately causes the login loop.
     if ('loading' in user) {
       return;
     }
