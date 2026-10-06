@@ -2,34 +2,33 @@
 import { useUser } from '~/components/contexts/user';
 import { NextPageWithLayout } from './_app';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 const IndexPage: NextPageWithLayout = () => {
   const user = useUser();
   const router = useRouter();
-  const [isReadyToRedirect, setIsReadyToRedirect] = useState(false);
 
   useEffect(() => {
     if (!router.isReady || typeof window === 'undefined') {
       return;
     }
 
-    // Wait a tick to ensure user context is fully initialized
-    const timer = setTimeout(() => {
-      if ('loggedIn' in user) {
-        if (user.loggedIn === true) {
-          router.push(`/dashboard`);
-        } else {
-          router.push(`/login`);
-        }
-      } else {
-        // User context not ready yet, allow another check
-        setIsReadyToRedirect(true);
-      }
-    }, 100);
+    // The auth context is hydrated asynchronously. Do not redirect until we know
+    // whether the user is actually logged in, otherwise a brief "logged out"
+    // state during the Roblox callback can bounce us back into a login loop.
+    if ('loading' in user) {
+      return;
+    }
 
-    return () => clearTimeout(timer);
-  }, [router.isReady, user, router]);
+    if (user.loggedIn === true) {
+      void router.replace('/dashboard');
+      return;
+    }
+
+    if (router.pathname !== '/login') {
+      void router.replace('/login');
+    }
+  }, [router, user]);
 
   return (
     <main className="h-screen flex flex-col justify-center align-middle py-24 px-8 bg-gray-100">
