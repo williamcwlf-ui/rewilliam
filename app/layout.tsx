@@ -1,0 +1,1 @@
+import "./globals.css";export const metadata={title:"Aurelia HR",description:"Roblox community HR portal"};export default function Layout({children}:{children:React.ReactNode}){return <html lang="en"><body>{children}</body></html>}
